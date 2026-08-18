@@ -1,0 +1,59 @@
+{
+  "_note": "Illustrative example of the hybrid embedding+LLM response shape, generated with mocked embedding/LLM calls during development (no live LLM was called in the dev sandbox). Run the API with a real Gemini API key (the default) and a real resume PDF to get an actual scored result.",
+  "resume_id": "205fdbba-f4f1-4494-86df-17c1b24f415f",
+  "filename": "sample_resume.pdf",
+  "extraction_method": "text",
+  "result": {
+    "job_title": "AI & Data Solution Intern",
+    "overall_score": 78,
+    "max_score": 100,
+    "breakdown": {
+      "education": {
+        "score": 18,
+        "max": 20,
+        "reasoning": "Currently pursuing a B.Sc. in Computer Science, directly relevant to the role.",
+        "llm_score": 18,
+        "semantic_similarity": 81.4
+      },
+      "experience": {
+        "score": 15,
+        "max": 25,
+        "reasoning": "One relevant internship (Data Analyst Intern) plus academic/Kaggle projects, but limited overall duration.",
+        "llm_score": 15,
+        "semantic_similarity": 62.1
+      },
+      "skills": {
+        "score": 22,
+        "max": 25,
+        "reasoning": "Strong Python/ML skill set covering data manipulation and model building.",
+        "llm_score": 22,
+        "semantic_similarity": 88.7
+      },
+      "tools_and_technologies": {
+        "score": 13,
+        "max": 15,
+        "reasoning": "Uses pandas, scikit-learn, PyTorch, SQL, and Git; no explicit cloud platform experience listed.",
+        "llm_score": 13,
+        "semantic_similarity": 74.0
+      },
+      "knowledge_and_domain": {
+        "score": 10,
+        "max": 15,
+        "reasoning": "Shows exposure to ML fundamentals and prompt engineering via a RAG chatbot project, but domain depth is limited.",
+        "llm_score": 10,
+        "semantic_similarity": 58.9
+      }
+    },
+    "strengths": [
+      "Solid Python/ML stack (pandas, scikit-learn, PyTorch)",
+      "Relevant internship experience building ETL pipelines and ML models",
+      "Hands-on LLM/GenAI project (RAG chatbot)"
+    ],
+    "gaps": [
+      "Limited cloud platform experience",
+      "Only one internship; overall experience is light"
+    ],
+    "recommendation": "Recommend for interview; strong technical fundamentals for an intern-level AI & Data Solution role.",
+    "raw_resume_summary": "CS student with a data analyst internship, strong Python/ML skills, and a personal RAG chatbot project."
+  }
+}
