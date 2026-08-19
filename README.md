@@ -64,6 +64,12 @@ not pulled), the API logs a warning and falls back to LLM-only scoring —
 `semantic_similarity` and `llm_score` are `null`/equal to `score` in the response. It's
 a supporting signal, never a hard dependency.
 
+Vision-LLM transcription (the scanned-PDF fallback) transcribes each page independently. A page
+whose transcription call fails (rate limit, transient error) is retried once after a short delay;
+if it fails again, the rest of the pages are still processed — the failed page is marked
+`[page N: transcription failed]` in the extracted text rather than failing the whole request.
+That marker is visible in the UI's raw-text viewer, so a reviewer can catch it.
+
 ## How scoring works
 
 Per category:
@@ -205,25 +211,46 @@ To run fully locally/offline instead of Gemini (see the trade-offs discussed in
    Opens at `http://localhost:8501`, talking to the API at `http://localhost:8000`
    by default (override with `API_BASE_URL`).
 
+## Testing
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+
+33 tests covering PDF extraction (both the pdfplumber path and the vision-LLM fallback, with
+mocked LLM calls), score blending/recompute, the API endpoints (upload validation, `resume_id`
+persistence, path-traversal rejection, auth on/off), and the embedding similarity math. No network
+calls or real LLM credentials needed — everything that talks to an LLM is mocked.
+
 ## Usage
 
 ```bash
 curl -X POST http://localhost:8000/analyze-resume \
+  -H "Authorization: Bearer $API_AUTH_TOKEN" \
   -F "file=@/path/to/resume.pdf"
 ```
+
+`Authorization` is only required if `API_AUTH_TOKEN` is set in `.env` — see "Auth" below.
 
 Each upload is saved as `data/uploads/<resume_id>.pdf` — the response's `resume_id` is the
 filename (no original filename or extra metadata is used, avoiding any path-traversal surface).
 Fetch it back with:
 
 ```bash
-curl http://localhost:8000/resumes/<resume_id> -o resume.pdf
+curl http://localhost:8000/resumes/<resume_id> -H "Authorization: Bearer $API_AUTH_TOKEN" -o resume.pdf
 ```
 
 There's no database — the filesystem *is* the store, and `data/` is gitignored, so nothing here
-is ever committed. There's also no access control on `/resumes/{id}`: anyone with a `resume_id`
-(a UUID — unguessable in practice, but not authenticated) can fetch that file. Fine for local/demo
-use; add auth before exposing this publicly.
+is ever committed.
+
+### Auth
+
+`POST /analyze-resume` and `GET /resumes/{id}` require a bearer token — `Authorization: Bearer
+<API_AUTH_TOKEN>` — whenever `API_AUTH_TOKEN` is set in `.env`. Leave it empty (the `.env.example`
+default) to disable auth entirely, which is fine for local-only use. Generate one with
+`openssl rand -hex 32`; the Streamlit UI reads the same env var and sends it automatically, so
+there's nothing extra to configure there. `GET /health` is always open (for infra health checks).
 
 ### Test resumes
 

@@ -3,6 +3,7 @@
   "resume_id": "205fdbba-f4f1-4494-86df-17c1b24f415f",
   "filename": "sample_resume.pdf",
   "extraction_method": "text",
+  "extracted_text": "Jane Doe\njane.doe@example.com\nEducation\nB.Sc. in Computer Science...",
   "result": {
     "job_title": "AI & Data Solution Intern",
     "overall_score": 78,

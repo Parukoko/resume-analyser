@@ -8,6 +8,7 @@ call) for scanned/image-only PDFs, transcribing each rasterized page.
 import base64
 import io
 import logging
+import time
 from dataclasses import dataclass
 
 import pdfplumber
@@ -16,6 +17,8 @@ from openai import APIError, OpenAI
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+PAGE_TRANSCRIPTION_RETRY_DELAY_SECONDS = 3
 
 _client = OpenAI(
     base_url=settings.llm_base_url,
@@ -74,11 +77,31 @@ def _transcribe_page(image) -> str:
     return response.choices[0].message.content or ""
 
 
+def _transcribe_page_with_retry(image, page_num: int) -> str:
+    try:
+        return _transcribe_page(image)
+    except RuntimeError:
+        logger.warning(
+            "Page %d transcription failed, retrying once in %ds",
+            page_num,
+            PAGE_TRANSCRIPTION_RETRY_DELAY_SECONDS,
+            exc_info=True,
+        )
+        time.sleep(PAGE_TRANSCRIPTION_RETRY_DELAY_SECONDS)
+        return _transcribe_page(image)
+
+
 def _extract_with_vision_llm(pdf_path: str) -> str:
     from pdf2image import convert_from_path
 
     images = convert_from_path(pdf_path, dpi=300)
-    pages_text = [_transcribe_page(image) for image in images]
+    pages_text = []
+    for page_num, image in enumerate(images, start=1):
+        try:
+            pages_text.append(_transcribe_page_with_retry(image, page_num))
+        except RuntimeError:
+            logger.warning("Page %d transcription failed twice, giving up on this page", page_num, exc_info=True)
+            pages_text.append(f"[page {page_num}: transcription failed]")
     return "\n".join(pages_text)
 
 

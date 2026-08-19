@@ -34,5 +34,9 @@ class Settings:
     max_upload_mb: int = int(os.getenv("MAX_UPLOAD_MB", "10"))
     ocr_fallback_char_threshold: int = int(os.getenv("OCR_FALLBACK_CHAR_THRESHOLD", "20"))
     upload_dir: str = os.getenv("UPLOAD_DIR", "data/uploads")
+    # Shared-secret bearer token required on /analyze-resume and /resumes/{id}.
+    # Empty (default) disables auth entirely — fine for local-only use, but set
+    # this before exposing the API beyond localhost.
+    api_auth_token: str = os.getenv("API_AUTH_TOKEN", "")
 
 settings = Settings()

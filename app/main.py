@@ -1,10 +1,13 @@
 import logging
+import secrets
 import uuid
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import settings
 from app.extractors.pdf_extractor import extract_text
@@ -24,13 +27,22 @@ app = FastAPI(
     version="1.0.0",
 )
 
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+
+async def require_auth(credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme)) -> None:
+    if not settings.api_auth_token:
+        return
+    if credentials is None or not secrets.compare_digest(credentials.credentials, settings.api_auth_token):
+        raise HTTPException(status_code=401, detail="Invalid or missing API token")
+
 
 @app.get("/health")
 def health():
     return {"status": "ok", "job_title": JOB_TITLE, "llm_model": settings.llm_model}
 
 
-@app.post("/analyze-resume", response_model=AnalyzeResponse)
+@app.post("/analyze-resume", response_model=AnalyzeResponse, dependencies=[Depends(require_auth)])
 async def analyze_resume_endpoint(file: UploadFile = File(...)):
     filename = file.filename or "upload.pdf"
     if file.content_type != "application/pdf" and not filename.lower().endswith(".pdf"):
@@ -72,7 +84,7 @@ async def analyze_resume_endpoint(file: UploadFile = File(...)):
     )
 
 
-@app.get("/resumes/{resume_id}")
+@app.get("/resumes/{resume_id}", dependencies=[Depends(require_auth)])
 async def get_resume(resume_id: str):
     try:
         parsed_id = uuid.UUID(resume_id)

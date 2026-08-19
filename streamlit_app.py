@@ -8,8 +8,9 @@ import requests
 import streamlit as st
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
-PUBLIC_API_BASE_URL = os.getenv("PUBLIC_API_BASE_URL", API_BASE_URL)
+API_AUTH_TOKEN = os.getenv("API_AUTH_TOKEN", "")
 API_REQUEST_TIMEOUT = int(os.getenv("API_REQUEST_TIMEOUT", "180"))
+AUTH_HEADERS = {"Authorization": f"Bearer {API_AUTH_TOKEN}"} if API_AUTH_TOKEN else {}
 FEEDBACK_LOG = Path(os.getenv("FEEDBACK_LOG_PATH", "data/feedback_log.jsonl"))
 FEEDBACK_LOG.parent.mkdir(parents=True, exist_ok=True)
 
@@ -134,6 +135,7 @@ if uploaded and analyze_clicked:
             resp = requests.post(
                 f"{API_BASE_URL}/analyze-resume",
                 files={"file": (uploaded.name, uploaded.getvalue(), "application/pdf")},
+                headers=AUTH_HEADERS,
                 timeout=API_REQUEST_TIMEOUT,
             )
             resp.raise_for_status()
@@ -154,8 +156,19 @@ if st.session_state.result:
     data = st.session_state.result
     result = data["result"]
 
-    resume_url = f"{PUBLIC_API_BASE_URL}/resumes/{data['resume_id']}"
-    st.caption(f"{data['filename']} · extracted via {data['extraction_method']} · [view saved PDF]({resume_url})")
+    st.caption(f"{data['filename']} · extracted via {data['extraction_method']}")
+    try:
+        pdf_resp = requests.get(
+            f"{API_BASE_URL}/resumes/{data['resume_id']}",
+            headers=AUTH_HEADERS,
+            timeout=API_REQUEST_TIMEOUT,
+        )
+        pdf_resp.raise_for_status()
+        st.download_button(
+            "Download saved PDF", data=pdf_resp.content, file_name=data["filename"], mime="application/pdf"
+        )
+    except requests.RequestException:
+        st.caption("Saved PDF unavailable")
 
     is_vision = data["extraction_method"] == "vision"
     with st.expander("View raw extracted text", expanded=is_vision):
