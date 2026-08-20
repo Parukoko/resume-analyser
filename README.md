@@ -301,8 +301,7 @@ browser, use `http://localhost:8000/docs` (API) and `http://localhost:8501` (rev
 plain `http`, not `https`.
 
 **502 "LLM call failed ... 404 ... This model ... is no longer available".** Google
-retires/renames free-tier Gemini models periodically (this happened once already during
-development: `gemini-2.5-flash` → `gemini-3.6-flash`). The error message itself names the
+retires/renames free-tier Gemini models periodically. The error message itself names the
 replacement model to use — put it in `LLM_MODEL` in `.env`, or check
 [ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models) for the
 current lineup.

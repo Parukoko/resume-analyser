@@ -12,24 +12,12 @@ CATEGORY_KEYS = (
 
 
 class CategoryScore(BaseModel):
-    score: int = Field(
-        ...,
-        ge=0,
-        description="Final score after blending llm_score with the semantic_similarity signal.",
-    )
+    score: int = Field(..., ge=0, description="Score after blending llm_score with semantic_similarity.")
     max: int = Field(..., gt=0)
     reasoning: str
-    llm_score: Optional[int] = Field(
-        default=None,
-        description="Raw score as returned by the LLM, before blending with semantic_similarity.",
-    )
+    llm_score: Optional[int] = Field(default=None, description="Raw score from the LLM, before blending.")
     semantic_similarity: Optional[float] = Field(
-        default=None,
-        description=(
-            "Embedding cosine similarity (0-100) between the resume and this category's "
-            "reference description, computed independently of the LLM. None if the "
-            "embedding backend was unavailable (in which case score == llm_score, unblended)."
-        ),
+        default=None, description="Embedding cosine similarity (0-100), null if unavailable."
     )
 
 
@@ -43,10 +31,7 @@ class ScoreBreakdown(BaseModel):
 
 class AnalysisResult(BaseModel):
     job_title: str
-    # Not range-validated here: this is the LLM's raw self-reported total, which
-    # app/llm/analyzer.py::_blend_and_finalize immediately recomputes from the
-    # (validated) category scores. Enforcing ge=0/le=100 on the untrusted raw
-    # value would 502 on a simple LLM arithmetic slip instead of being corrected.
+    # recomputed in analyzer._blend_and_finalize, not trusted from the LLM
     overall_score: int
     max_score: int = 100
     breakdown: ScoreBreakdown

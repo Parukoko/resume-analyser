@@ -1,17 +1,11 @@
-"""Randomly picks real resume PDFs from the Kaggle "Resume Dataset" (snehaanbhawal)
-and copies them into data/picked/, for exercising the /analyze-resume pipeline
-end to end against real (if generic/template-like) resumes across a spread of fit.
+"""Randomly picks resume PDFs from the Kaggle "Resume Dataset" (snehaanbhawal)
+into data/picked/, for exercising the /analyze-resume pipeline end to end.
 
-Setup (manual — Kaggle requires a login, so this isn't scripted):
-    1. https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset -> Download
-    2. Save the zip as data/raw/kaggle_resume_dataset/archive.zip
+Setup: download https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset
+(needs a Kaggle login) and save it to data/raw/kaggle_resume_dataset/archive.zip
 
 Usage:
     python scripts/pick_sample_resumes.py --strong 1 --medium 1 --weak 1 --seed 42
-
-data/ is gitignored: nothing this script reads or writes gets committed. These
-are real people's resumes (Kaggle's dataset card describes them as anonymized) —
-don't redistribute the output beyond local testing.
 """
 
 import argparse
@@ -23,9 +17,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 ARCHIVE_PATH = REPO_ROOT / "data" / "raw" / "kaggle_resume_dataset" / "archive.zip"
 OUT_DIR = REPO_ROOT / "data" / "picked"
 
-# Kaggle categories (data/data/<CATEGORY>/*.pdf) grouped by expected fit against
-# the AI & Data Solution Intern role. The dataset has no dedicated "Data Science"
-# category, so INFORMATION-TECHNOLOGY/ENGINEERING stand in as the closest fit.
 POOLS = {
     "strong": ["INFORMATION-TECHNOLOGY", "ENGINEERING"],
     "medium": ["CONSULTANT", "BUSINESS-DEVELOPMENT", "FINANCE", "BANKING", "DIGITAL-MEDIA"],
@@ -40,7 +31,6 @@ POOLS = {
 def list_pdfs_by_category(zf: zipfile.ZipFile) -> dict[str, list[str]]:
     by_category: dict[str, list[str]] = {}
     for name in zf.namelist():
-        # e.g. "data/data/INFORMATION-TECHNOLOGY/12345678.pdf"
         parts = name.split("/")
         if len(parts) == 4 and parts[0] == "data" and parts[1] == "data" and name.endswith(".pdf"):
             by_category.setdefault(parts[2], []).append(name)
@@ -92,11 +82,7 @@ def main() -> None:
                 out_path.write_bytes(zf.read(name))
                 print(f"[{pool}] {category} -> {out_path.relative_to(REPO_ROOT)}")
 
-    print(
-        f"\nDone. These are real resumes with no additional scrubbing applied beyond "
-        f"what the Kaggle dataset already did. Don't commit or redistribute "
-        f"{args.out.relative_to(REPO_ROOT)} (data/ is gitignored)."
-    )
+    print(f"\nDone. Output in {args.out.relative_to(REPO_ROOT)}")
 
 
 if __name__ == "__main__":

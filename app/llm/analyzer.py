@@ -1,8 +1,3 @@
-"""Calls an LLM through an OpenAI-compatible API (default: Gemini's free tier;
-also works with a local model via Ollama, vLLM, LM Studio, etc.) and
-parses/validates the JSON response.
-"""
-
 import json
 import logging
 import re
@@ -33,10 +28,7 @@ class LLMAnalysisError(Exception):
 
 def _extract_json(raw: str) -> dict:
     raw = raw.strip()
-    # Strip <think>...</think> reasoning blocks some models (e.g. Qwen3) emit;
-    # a no-op for models that don't use this convention.
     raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
-    # Strip markdown code fences if the model added them despite instructions.
     if raw.startswith("```"):
         raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
         raw = re.sub(r"\n?```$", "", raw).strip()
@@ -68,9 +60,6 @@ def _safe_compute_semantic_signals(resume_text: str) -> dict[str, float]:
 
 
 def _blend_and_finalize(result: AnalysisResult, semantic_signals: dict[str, float]) -> AnalysisResult:
-    """Blends each category's LLM score with its embedding semantic-similarity signal
-    (weighted by settings.semantic_weight), then recomputes overall_score/max_score
-    from the category scores rather than trusting the LLM's arithmetic."""
     total = 0
     for category in CATEGORY_KEYS:
         cat = getattr(result.breakdown, category)

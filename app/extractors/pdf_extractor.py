@@ -1,10 +1,3 @@
-"""PDF text extraction.
-
-Tries the fast, accurate path first (pdfplumber, works for text-based PDFs).
-Falls back to a vision-capable LLM (same provider/model as the main scoring
-call) for scanned/image-only PDFs, transcribing each rasterized page.
-"""
-
 import base64
 import io
 import logging

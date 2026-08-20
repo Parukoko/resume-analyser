@@ -1,8 +1,5 @@
 JOB_TITLE = "AI & Data Solution Intern"
 
-# Per-category "ideal candidate" description. Doubles as the reference text
-# embedded for the semantic-similarity signal in app/llm/embeddings.py, so the
-# LLM rubric and the embedding signal always describe the same criteria.
 CATEGORY_LABELS = {
     "education": "Education",
     "experience": "Experience",

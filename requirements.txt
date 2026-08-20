@@ -5,7 +5,4 @@ pydantic>=2.7
 python-dotenv>=1.0
 openai>=1.40
 pdfplumber>=0.11
-
-# Rasterizes scanned/image-based PDF pages for vision-LLM transcription fallback
-# (see app/extractors/pdf_extractor.py). Requires the poppler-utils system package.
 pdf2image>=1.17

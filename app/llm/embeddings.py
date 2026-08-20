@@ -1,14 +1,3 @@
-"""Embedding-based semantic-similarity signals — the "hybrid" half of the
-scoring pipeline. Computes cosine similarity between the resume and each
-category's reference description using an embedding model served behind the
-same OpenAI-compatible endpoint as the LLM (default: `gemini-embedding-001`; also
-works with a local model like `nomic-embed-text` via Ollama).
-
-This is a supporting signal only: it's passed into the LLM prompt for context
-and attached to the final response for transparency, but the LLM's own
-evidence-grounded score/reasoning remains authoritative.
-"""
-
 import logging
 import math
 from functools import lru_cache
@@ -50,8 +39,6 @@ def _category_reference_embedding(category: str) -> tuple[float, ...]:
 
 
 def compute_semantic_signals(resume_text: str) -> dict[str, float]:
-    """Returns {category: similarity_0_to_100}. Raises on embedding backend failure —
-    callers should catch and treat this signal as optional."""
     resume_embedding = _embed(resume_text)
 
     signals = {}

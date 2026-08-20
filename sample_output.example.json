@@ -1,5 +1,4 @@
 {
-  "_note": "Illustrative example of the hybrid embedding+LLM response shape, generated with mocked embedding/LLM calls during development (no live LLM was called in the dev sandbox). Run the API with a real Gemini API key (the default) and a real resume PDF to get an actual scored result.",
   "resume_id": "205fdbba-f4f1-4494-86df-17c1b24f415f",
   "filename": "sample_resume.pdf",
   "extraction_method": "text",
