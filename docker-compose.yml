@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: app
     ports:
       - "8000:8000"
     env_file:
@@ -11,7 +13,7 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile.ui
+      target: ui
     ports:
       - "8501:8501"
     environment:
@@ -22,6 +24,15 @@ services:
       - ./data:/app/data
     depends_on:
       - app
+
+  # Runs the pytest suite (all LLM/embedding calls are mocked — no .env or real
+  # credentials needed). Not started by default. Run with:
+  #   docker compose --profile test run --rm test
+  test:
+    build:
+      context: .
+      target: test
+    profiles: ["test"]
 
   # Optional: a local LLM instead of the default (Gemini free tier). Not started
   # by default. Start it with:

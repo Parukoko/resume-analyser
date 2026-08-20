@@ -213,15 +213,24 @@ To run fully locally/offline instead of Gemini (see the trade-offs discussed in
 
 ## Testing
 
+Locally:
+
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 ```
 
+Or via Docker, no local Python setup needed:
+
+```bash
+docker compose --profile test run --rm test
+```
+
 33 tests covering PDF extraction (both the pdfplumber path and the vision-LLM fallback, with
 mocked LLM calls), score blending/recompute, the API endpoints (upload validation, `resume_id`
 persistence, path-traversal rejection, auth on/off), and the embedding similarity math. No network
-calls or real LLM credentials needed — everything that talks to an LLM is mocked.
+calls or real LLM credentials needed — everything that talks to an LLM is mocked, and the Docker
+test image doesn't even read `.env`.
 
 ## Usage
 

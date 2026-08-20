@@ -124,6 +124,8 @@ if "result" not in st.session_state:
     st.session_state.result = None
     st.session_state.filename = None
     st.session_state.run_id = 0
+    st.session_state.cached_resume_id = None
+    st.session_state.cached_resume_bytes = None
 
 with st.container(border=True):
     uploaded = st.file_uploader("Upload resume (PDF)", type=["pdf"], label_visibility="collapsed")
@@ -157,17 +159,28 @@ if st.session_state.result:
     result = data["result"]
 
     st.caption(f"{data['filename']} · extracted via {data['extraction_method']}")
-    try:
-        pdf_resp = requests.get(
-            f"{API_BASE_URL}/resumes/{data['resume_id']}",
-            headers=AUTH_HEADERS,
-            timeout=API_REQUEST_TIMEOUT,
-        )
-        pdf_resp.raise_for_status()
+
+    if st.session_state.cached_resume_id != data["resume_id"]:
+        try:
+            pdf_resp = requests.get(
+                f"{API_BASE_URL}/resumes/{data['resume_id']}",
+                headers=AUTH_HEADERS,
+                timeout=API_REQUEST_TIMEOUT,
+            )
+            pdf_resp.raise_for_status()
+            st.session_state.cached_resume_bytes = pdf_resp.content
+        except requests.RequestException:
+            st.session_state.cached_resume_bytes = None
+        st.session_state.cached_resume_id = data["resume_id"]
+
+    if st.session_state.cached_resume_bytes is not None:
         st.download_button(
-            "Download saved PDF", data=pdf_resp.content, file_name=data["filename"], mime="application/pdf"
+            "Download saved PDF",
+            data=st.session_state.cached_resume_bytes,
+            file_name=data["filename"],
+            mime="application/pdf",
         )
-    except requests.RequestException:
+    else:
         st.caption("Saved PDF unavailable")
 
     is_vision = data["extraction_method"] == "vision"
